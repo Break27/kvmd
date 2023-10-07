@@ -1,0 +1,116 @@
+h4 {
+    text-align: center;
+    margin-top: 25px;
+}
+
+div#rf div.icon {
+    display: inline-flex;
+    margin-left: 12px;
+    margin-right: 12px;
+    font-size: 20px;
+
+    align-items: center;
+}
+
+div#rf div.icon.spin {
+    animation: spin 1s linear infinite;
+}
+
+div#hosts {
+    margin-top: 12px;
+}
+
+div#hosts div.host {
+    display: flex;
+    margin-top: 8px;
+    padding: 12px 12px 12px 12px;
+    
+    background-color: var(--cs-control-default-bg);
+    border: var(--border-key-thin);
+    border-radius: 6px;
+}
+
+span.bulb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+div[state='unknown'] span.bulb {
+    background-color: yellow;
+}
+
+div[state='online'] span.bulb {
+    background-color: limegreen;
+}
+
+div[state='offline'] span.bulb {
+    background-color: grey;
+}
+
+span.state {
+    margin-left: 24px;
+    color: grey;
+    user-select: none;
+}
+
+div[state='unknown'] span.state::before {
+    content: "[ Unknown ]";
+}
+
+div[state='online'] span.state::before {
+    content: "[ Online ]";
+}
+
+div[state='offline'] span.state::before {
+    content: "[ Offline ]";
+}
+
+span.hostname {
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 28px;
+    color: white;
+}
+
+div.link {
+    margin-top: 1.5px;
+    margin-left: 32px;
+    cursor: pointer;
+}
+
+div#actions {
+    display:flex;
+    justify-content: space-between;
+}
+
+div.start {
+    min-width: 100%;
+    height: 100vh;
+}
+
+.link {
+    display: inline-flex;
+    margin-top: 4px;
+    color: #5c90bc;
+    text-decoration: none;
+    align-items: center;
+}
+
+@media only screen and (min-width: 768px) {
+    div.start {
+        min-width: 40%;
+        height: 100%;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

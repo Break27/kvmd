@@ -31,6 +31,8 @@ import pygments
 import pygments.lexers.data
 import pygments.formatters
 
+from pathlib import Path
+
 from .. import tools
 
 from ..mouse import MouseRange
@@ -162,6 +164,20 @@ def init(
             "Try the --help option to find out what this service does.\n"
             "Make sure you understand exactly what you are doing!"
         )
+
+    path = Path(config.kvmd.remote.path)
+    config.kvmd.remote.hosts = []
+
+    for file in [x for x in os.listdir(path) if x.endswith(".conf")]:
+        pairs = {'name': file.rsplit('.', 1)[0]}
+
+        with open(path / file) as conf:
+            lines = conf.readlines()
+        for line in lines:
+            key, value = line.rstrip('\n').split("=", 1)
+            pairs[key.strip()] = value.strip()
+
+        config.kvmd.remote.hosts.append(pairs)
 
     return (parser, remaining, config)
 
@@ -348,6 +364,11 @@ def _get_config_scheme() -> dict:
         "logging": Option({}),
 
         "kvmd": {
+            "remote": {
+                "path": Option("/etc/kvmd/hosts.d", type=valid_abs_path),
+                "ssh_key": Option("/etc/kvmd/ssh/id_rsa", type=valid_abs_path),
+                "timeout": Option(10, type=valid_int_f1),
+            },
             "server": {
                 "unix":              Option("/run/kvmd/kvmd.sock", type=valid_abs_path, unpack_as="unix_path"),
                 "unix_rm":           Option(True,  type=valid_bool),

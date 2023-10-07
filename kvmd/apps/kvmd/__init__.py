@@ -36,11 +36,12 @@ from .streamer import Streamer
 from .snapshoter import Snapshoter
 from .ocr import Ocr
 from .server import KvmdServer
+from .remote import RemoteControl
 
 
 # =====
 def main(argv: (list[str] | None)=None) -> None:
-    config = init(
+    _, _, config = init(
         prog="kvmd",
         description="The main PiKVM daemon",
         argv=argv,
@@ -50,7 +51,7 @@ def main(argv: (list[str] | None)=None) -> None:
         load_atx=True,
         load_msd=True,
         load_gpio=True,
-    )[2]
+    )
 
     msd_kwargs = config.kvmd.msd._unpack(ignore=["type"])
     if config.kvmd.msd.type == "otg":
@@ -100,6 +101,12 @@ def main(argv: (list[str] | None)=None) -> None:
             hid=hid,
             streamer=streamer,
             **config.snapshot._unpack(),
+        ),
+
+        remote=RemoteControl.from_dict(
+            hosts=config.remote.hosts,
+            timeout=config.remote.timeout,
+            ssh_key=config.remote.ssh_key,
         ),
 
         keymap_path=config.hid.keymap,

@@ -1,0 +1,57 @@
+div.host[state='online'] button.remote-action[action='WAKE'],
+div.host[state='offline'] button.remote-action[action='SHUTDOWN'],
+div.host[state='unknown'] button.remote-action {
+    display: none;
+}
+
+div.host[state='unknown'] div.remote-actions::before {
+    content: "⏳";
+}
+
+/********************************************/
+
+button.remote-action[action='WAKE']::before {
+    content: "☀️"
+}
+
+button.remote-action[action='SHUTDOWN']::before {
+    content: "🌙"
+}
+
+button.remote-action[action='RESTART']::before {
+    content: "🔄"
+}
+
+/********************************************/
+
+div.remote-actions {
+    display: inline-flex;
+    flex: 1;
+    justify-content: flex-end;
+    align-items: center;
+    font-size: 20px;
+}
+
+button.remote-action {
+    border: var(--border-key-thin);
+    border-radius: 6px;
+    box-shadow: var(--shadow-micro);
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    margin-left: 10px;
+    background-color: var(--cs-control-default-bg);
+}
+
+button.remote-action:hover {
+    border-color: var(--cs-corner-bg);
+}
+
+button.remote-action:active {
+    background-color: var(--cs-control-pressed-bg);
+}
+

@@ -70,6 +70,7 @@ from .ugpio import UserGpio
 from .streamer import Streamer
 from .snapshoter import Snapshoter
 from .ocr import Ocr
+from .remote import RemoteControl
 
 from .api.auth import AuthApi
 from .api.auth import check_request_auth
@@ -83,6 +84,7 @@ from .api.msd import MsdApi
 from .api.streamer import StreamerApi
 from .api.export import ExportApi
 from .api.redfish import RedfishApi
+from .api.remote import RemoteApi
 
 
 # =====
@@ -137,6 +139,7 @@ class KvmdServer(HttpServer):  # pylint: disable=too-many-arguments,too-many-ins
         msd: BaseMsd,
         streamer: Streamer,
         snapshoter: Snapshoter,
+        remote: RemoteControl,
 
         keymap_path: str,
         ignore_keys: List[str],
@@ -170,6 +173,7 @@ class KvmdServer(HttpServer):  # pylint: disable=too-many-arguments,too-many-ins
                 _Component("ATX",          "atx_state",      atx),
                 _Component("MSD",          "msd_state",      msd),
                 _Component("Streamer",     "streamer_state", streamer),
+                _Component("Remote",       "remote_state",   remote),
             ],
         ]
 
@@ -187,6 +191,7 @@ class KvmdServer(HttpServer):  # pylint: disable=too-many-arguments,too-many-ins
             self.__streamer_api,
             ExportApi(info_manager, atx, user_gpio),
             RedfishApi(info_manager, atx),
+            RemoteApi(remote),
         ]
 
         self.__streamer_notifier = aiotools.AioNotifier()

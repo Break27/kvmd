@@ -1,0 +1,6 @@
+name: Remote
+description: Remote Hosts Control
+daemon: kvmd
+icon: share/svg/ipmi.svg
+path: remote
+place: 30
