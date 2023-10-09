@@ -19,7 +19,11 @@ class RemoteHost:
         self.name = name
         self.address = address
         self.encoding = encoding
-        self.actions = kwargs
+
+        self.actions = {
+            k[3:].upper() : v for k, v in kwargs.items()
+            if k.startswith('on_')
+        }
 
         self.online = False
         self.last_seen = 0
@@ -29,18 +33,8 @@ class RemoteHost:
             "name": self.name,
             "online": self.online,
             "last_seen": self.last_seen,
-            "actions": self.parse_action(),
+            "actions": [ x for x in self.actions ],
         }
-
-    def parse_action(self, action=None) -> list[str] | str:
-        if not action:
-            return [
-                key[3:].upper() for key, value in self.actions.items()
-                if key.startswith('on_') and value
-            ]
-        command = self.actions.get("on_%s" % action.lower())
-        if not command: raise NotImplementedError()
-        return command
 
     async def ping(self) -> bool:
         process = await asyncio.create_subprocess_shell(
@@ -69,7 +63,7 @@ class RemoteControl:
 
     @staticmethod
     def from_dict(hosts: list[dict], **kwargs):
-        roll = [RemoteHost(**host) for host in hosts]
+        roll = [ RemoteHost(**host) for host in hosts ]
         return RemoteControl(roll, **kwargs)
 
     async def get_state(self) -> list[dict]:
@@ -81,7 +75,10 @@ class RemoteControl:
         if hostname not in self.__hosts:
             raise KeyError(hostname)
         host = self.__hosts.get(hostname)
-        command = host.parse_action(action)
+
+        if action not in host.actions:
+            raise NotImplementedError(action)
+        command = host.actions.get(action)
 
         if command.startswith("ssh"):
             head, tail = command.split(' ', 1)
@@ -109,6 +106,6 @@ class RemoteControl:
 
     async def poll_state(self) -> AsyncGenerator[list, None]:
         while True:
-            state = await self.update()
-            if state: yield state
+            status = await self.update()
+            if status: yield status
             await self.__notifier.wait(self.__timeout)
