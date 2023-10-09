@@ -26,7 +26,7 @@ export function fromNow(timestamp) {
 	for (const unit in Time) if (time >= Time[unit]) {
 		let value = Math.floor(time / Time[unit]);
 		return RTF.format(-value, unit);
-        }
+	}
 
 	return "just now";
 }

@@ -5,22 +5,45 @@ import { $, $$$, tools } from "../tools.js";
 import { fromNow } from "./relativeTime.js";
 
 
-let prev_state = {};
-
 let loading = false;
+
+let firstRun = true;
 
 /********************************************************/
 
 export function main() {
-	loadRemoteApi(x => makeView(x));
-	setInterval(update, 10000);
-
 	$("rf").addEventListener("click", refresh);
+	createWebSocket();
+	setInterval(updateOfflineTime, 5000);
 }
 
-function update() {
-	loadRemoteApi(x => x.forEach(y => updateState(y)));
-	updateOfflineTime();
+function createWebSocket() {
+	let address = `wss://${window.location.host}/api/ws`;
+	let socket = new WebSocket(address);
+
+	socket.onopen = () => {
+		console.log("WebSocket connection established.");
+	};
+	
+	socket.onmessage = (e) => {
+		let { event_type, event } = JSON.parse(e.data);
+
+		if (event_type != "remote_state") {
+			return;
+		}
+
+		if (firstRun) { makeView(event); firstRun = false; }
+		else event.forEach(x => updateState(x));
+	};
+
+	socket.onerror = () => {
+		socket.close();
+	};
+
+	socket.onclose = () => {
+		console.log("Websocket connection lost. Retrying in 5 seconds.");
+		setTimeout(createWebSocket, 5000);
+	};
 }
 
 function refresh(event) {
@@ -30,8 +53,7 @@ function refresh(event) {
 	let icon = $$$("#rf div.icon")[0];
 	icon.classList.toggle("spin");
 
-	prev_state = {};
-	loadRemoteApi(x => {
+	getApiUpdate(x => {
 		x.forEach(y => updateState(y));
 		setTimeout(() => {
 			icon.classList.toggle("spin")
@@ -59,17 +81,15 @@ function guards(http) {
 	return true;
 }
 
-function loadRemoteApi(callback) {
-	let http = tools.makeRequest("POST", "/api/remote", () => {
+function getApiUpdate(callback) {
+	let http = tools.makeRequest("POST", "/api/remote/update", () => {
 		let response = http.responseText;
 
 		if (! guards(http)) return;
 		if (! response) return;
 
-		let hosts = JSON.parse(response).result.hosts;
-		let diff = stateDiff(hosts);
-
-		callback(diff);
+		let update = JSON.parse(response).result.update;
+		callback(update);
 	});
 }
 
@@ -84,9 +104,7 @@ function actionPerform(target, action) {
 		let result = JSON.parse(response).result;
 
 		if (result.code != 0) {
-			delete prev_state[target];
 			let state = $$$(`.host[name='${target}'] span.state`)[0];
-
 			state.innerHTML = '&nbsp;&nbsp;&olcross;&nbsp;&nbsp;Failed';
 			setTimeout(update, 3000);
 		}
@@ -122,7 +140,7 @@ function makeView(hosts) {
 		child.innerHTML = `
 		  <div>
 		    <div>
-	              <span class="bulb"></span>
+		          <span class="bulb"></span>
 		      <span class="hostname">${host.name}</span>
 		    </div>
 		    <span class="state"></span>
@@ -136,7 +154,7 @@ function makeView(hosts) {
 			button.classList.add("remote-action");
 			button.setAttribute("action", action);
 			button.onclick = () => {
-        			child.setAttribute("state", "unknown");
+				child.setAttribute("state", "unknown");
 				child.querySelector("span.state")
 				     .innerHTML = '&nbsp;&nbsp;&DoubleRightArrow;&nbsp;&nbsp;'
 				                + action[0] + action.slice(1).toLowerCase();
@@ -153,7 +171,7 @@ function updateState(host, child) {
 	let separator = $("separator");
 	let element = child ?? $$$(`div.host[name='${host.name}']`)[0];
 
-    element.setAttribute("state", host.online ? 'online' : 'offline');
+	element.setAttribute("state", host.online ? 'online' : 'offline');
 	element.setAttribute("last-seen", host.last_seen);
 
 	if (host.online) {
@@ -174,19 +192,4 @@ function updateOfflineTime(name) {
 
 		state.innerHTML = '&nbsp;&nbsp;&ndash;&nbsp;&nbsp;' + fromNow(timestamp);
 	}
-}
-
-function stateDiff(hosts) {
-	let diff = [];
-
-	for (const host of hosts) {
-		if (! (host.name in prev_state)
-		    || prev_state[host.name].online != host.online)
-		{
-			diff.push(host);
-		}
-		prev_state[host.name] = host;
-	}
-
-	return diff;
 }

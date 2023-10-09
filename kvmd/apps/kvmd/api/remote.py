@@ -20,10 +20,10 @@ class RemoteApi:
 
     # =====
 
-    @exposed_http("POST", "/remote")
-    async def __state_handler(self, _: Request) -> Response:
+    @exposed_http("POST", "/remote/update")
+    async def __remote_update_handler(self, _: Request) -> Response:
         return make_json_response({
-            "hosts": await self.__remote.get_state(),
+            "update": await self.__remote.update(),
         })
 
     @exposed_http("POST", "/remote/control")
