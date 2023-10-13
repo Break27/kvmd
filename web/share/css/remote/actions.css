@@ -1,10 +1,10 @@
 div.host[state='online'] button.remote-action[action='WAKE'],
 div.host[state='offline'] button.remote-action[action='SHUTDOWN'],
-div.host[state='unknown'] button.remote-action {
+div.host:is([state='unknown'], [state='error']) button.remote-action {
     display: none;
 }
 
-div.host[state='unknown'] div.remote-actions::before {
+div.host:is([state='unknown'], [state='error']) div.remote-actions::before {
     content: "⏳";
 }
 

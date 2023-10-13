@@ -82,7 +82,8 @@ class RemoteControl:
 
         if command.startswith("ssh"):
             head, tail = command.split(' ', 1)
-            slices = [head, "-oStrictHostKeyChecking=no", "-i", self.__ssh_key, tail]
+            flags = "-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null -oLogLevel=ERROR"
+            slices = [head, flags, "-i", self.__ssh_key, tail]
             command = ' '.join(slices)
 
         process = await asyncio.create_subprocess_shell(
