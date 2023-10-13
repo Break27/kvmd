@@ -104,8 +104,12 @@ function actionPerform(target, action) {
 		let result = JSON.parse(response).result;
 
 		if (result.code != 0) {
-			let state = $$$(`.host[name='${target}'] span.state`)[0];
-			state.innerHTML = '&nbsp;&nbsp;&olcross;&nbsp;&nbsp;Failed';
+			let element = $$$(`.host[name='${target}']`)[0];
+			let state = element.querySelector('span.state');
+
+			element.setAttribute("state", "error");
+			state.innerHTML = '&nbsp;&nbsp;&olcross;&nbsp;&nbsp;'
+			                + action[0] + action.slice(1).toLowerCase();
 			setTimeout(() => updateState(status[target]), 5000);
 		}
 	}, body, contentType);
@@ -148,7 +152,7 @@ function makeView(hosts) {
 		  </div>
 		`;
 
-		let actions = child.querySelector(".remote-actions");
+		let buttons = child.querySelector(".remote-actions");
 		for (const action of host.actions) {
 			let button = document.createElement("button");
 			button.classList.add("remote-action");
@@ -160,7 +164,7 @@ function makeView(hosts) {
 				                + action[0] + action.slice(1).toLowerCase();
 				actionPerform(host.name, action);
 			};
-			actions.appendChild(button);
+			buttons.appendChild(button);
 		}
 		updateState(host, child);
 	}

@@ -1,0 +1,45 @@
+span.bulb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+div[state='unknown'] span.bulb {
+    background-color: yellow;
+}
+
+div[state='online'] span.bulb {
+    background-color: limegreen;
+}
+
+div[state='offline'] span.bulb {
+    background-color: grey;
+}
+
+div[state='error'] span.bulb {
+    background-color: orangered;
+}
+
+span.state {
+    margin-left: 24px;
+    color: grey;
+    user-select: none;
+}
+
+div[state='unknown'] span.state::before {
+    content: "[ Unknown ]";
+}
+
+div[state='online'] span.state::before {
+    content: "[ Online ]";
+}
+
+div[state='offline'] span.state::before {
+    content: "[ Offline ]";
+}
+
+div[state='error'] span.state::before {
+    content: "[ Error ]";
+}
