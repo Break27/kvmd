@@ -7,7 +7,7 @@ import { fromNow } from "./relativeTime.js";
 
 let loading = false;
 
-let firstRun = true;
+let status = null;
 
 /********************************************************/
 
@@ -32,7 +32,7 @@ function createWebSocket() {
 			return;
 		}
 
-		if (firstRun) { makeView(event); firstRun = false; }
+		if (! status) { status = {}; makeView(event); }
 		else event.forEach(x => updateState(x));
 	};
 
@@ -53,10 +53,10 @@ function refresh(event) {
 	let icon = $$$("#rf div.icon")[0];
 	icon.classList.toggle("spin");
 
-	getApiUpdate(x => {
-		x.forEach(y => updateState(y));
+	getApiUpdate(roll => {
+		roll.forEach(host => updateState(host));
 		setTimeout(() => {
-			icon.classList.toggle("spin")
+			icon.classList.toggle("spin");
 			loading = false;
 		}, 950);
 	});
@@ -106,7 +106,7 @@ function actionPerform(target, action) {
 		if (result.code != 0) {
 			let state = $$$(`.host[name='${target}'] span.state`)[0];
 			state.innerHTML = '&nbsp;&nbsp;&olcross;&nbsp;&nbsp;Failed';
-			setTimeout(update, 3000);
+			setTimeout(() => updateState(status[target]), 5000);
 		}
 	}, body, contentType);
 }
@@ -118,12 +118,12 @@ function makeView(hosts) {
 
 	if (! hosts) {
 		parent.innerHTML = '<h4>Error</h4>';
-		return;
+		throw new Error('Could not load hosts');
 	}
 
 	if (hosts.length == 0) {
 		parent.innerHTML = '<h4>No Hosts</h4>';
-		return;
+		throw new Error('No host available');
 	}
 
 	parent.innerHTML = `
@@ -181,6 +181,8 @@ function updateState(host, child) {
 		separator.after(element);
 		updateOfflineTime(host.name);
 	}
+
+	status[host.name] = host;
 }
 
 function updateOfflineTime(name) {
