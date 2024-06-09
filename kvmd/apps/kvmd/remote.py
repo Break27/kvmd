@@ -9,13 +9,7 @@ from ... import aiotools
 
 
 class RemoteHost:
-    def __init__(
-        self,
-        name,
-        address='',
-        encoding='utf-8',
-        **kwargs
-    ) -> None:
+    def __init__(self, name, address='', encoding='utf-8', **kwargs) -> None:
         self.name = name
         self.address = address
         self.encoding = encoding
@@ -26,6 +20,7 @@ class RemoteHost:
         }
 
         self.online = False
+        self.outdated = True
         self.last_seen = 0
 
     def get_state(self) -> dict:
@@ -45,8 +40,9 @@ class RemoteHost:
         await process.wait()
         online = process.returncode == 0
 
-        changed = self.online != online
+        changed = self.online != online or self.outdated
         self.online = online
+        self.outdated = False
 
         if self.online:
             self.last_seen = time()
@@ -95,9 +91,12 @@ class RemoteControl:
         await process.wait()
         stdout, stderr = await process.communicate()
 
+        code = process.returncode
         message = stdout.decode(host.encoding)
         error = stderr.decode(host.encoding)
-        return (process.returncode, message, error)
+
+        if code == 0: host.outdated = True
+        return (code, message, error)
 
     async def update(self) -> list[dict]:
         return [
